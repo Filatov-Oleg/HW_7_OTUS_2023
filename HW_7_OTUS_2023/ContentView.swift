@@ -9,44 +9,46 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @StateObject var viewModel = BookViewModel()
+    @StateObject var viewModel = ViewModel()
     @State private var showingAddScreen = false
 
     var body: some View {
         NavigationView {
             List {
-                ForEach(viewModel.books) { book in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(book.title )
-                                .font(.headline)
-                            Text("Автор: " + book.author)
-                                .foregroundColor(.secondary)
-                            RatingView(rating: book.rating)
-                            Text("Отзыв: " + book.review)
-                                .font(.footnote)
+                ForEach(viewModel.articles) { article in
+                    let isLast = viewModel.articles.isLastElement(article)
+                    NavigationLink(destination: DetailScreen(article: article)) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(article.title ?? "")
+                            }
+                        }
+                    }
+                    .onAppear {
+                        if isLast {
+                            viewModel.nextPage(with: "Cat")
                         }
                     }
                 }
-                .onDelete { indexSet in
-                    viewModel.deleteBook(with: indexSet)
-                }
             }
-            .navigationTitle("Список книг")
+            .navigationTitle("Новости")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         showingAddScreen.toggle()
                     } label: {
-                        Label("", systemImage: "plus")
+                        Text("История")
                     }
                 }
             }
             .sheet(isPresented: $showingAddScreen) {
-                AddBookView(viewModel: viewModel)
+                HistoryScreen()
+            }
+            .onAppear {
+                viewModel.nextPage(with: "Cat")
             }
         }
-
+        .environmentObject(viewModel)
     }
 }
 
